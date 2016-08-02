@@ -1,0 +1,5 @@
+width,datatype,"column name"
+12,TEXT,city
+5,INTEGER,zip_code
+2,TEXT,state
+3,INTEGER,area_code

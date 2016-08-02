@@ -1,0 +1,159 @@
+First, import the classes from our infection module
+
+    >>> from infection import CoachingGraph, User
+
+Create a Coaching Graph
+
+    >>> ClassA = CoachingGraph()
+
+Add some users on version 1
+
+    >>> for x in range(5):
+    ...     ClassA.add_user(version=1)
+
+Define some connections between users
+
+    >>> connections = [(1,2), (2,3), (1,4), (4,5)]
+    >>> for item in connections:
+    ...     ClassA.add_relation(item[0], item[1])
+
+Check we have number of users expected
+
+    >>> print ClassA.total_users
+    5
+
+See what our graph looks like
+    >>> ClassA
+    total users: 5, user_ids: 1, 2, 3, 4, 5
+
+Try adding a relation to a user that doesn't exist in Graph & make sure it throws an error
+    >>> ClassA.add_relation(1, 6)
+    ... # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+     ...
+    KeyError
+
+Check that everyone is on version 1
+
+    >>> for user_id, obj in ClassA.users.items():
+    ...     print "u_id %s: version %s" % (obj.id, obj.version)
+    u_id 1: version 1
+    u_id 2: version 1
+    u_id 3: version 1
+    u_id 4: version 1
+    u_id 5: version 1
+
+Now infect the classroom with version 2 starting at user 1
+
+    >>> ClassA.total_infection(1,2)
+
+Check that we successfully infected everyone
+
+    >>> for user_id, obj in ClassA.users.items():
+    ...     print "u_id %s: version %s" % (obj.id, obj.version)
+    u_id 1: version 2
+    u_id 2: version 2
+    u_id 3: version 2
+    u_id 4: version 2
+    u_id 5: version 2
+
+Add a couple more users and relations
+    >>> ClassA.add_user(version=2)
+    >>> ClassA.add_user(version=2)
+    >>> ClassA.add_relation(1,6)
+    >>> ClassA.add_relation(5, 7)
+
+Lets try a limited infection to version 3 that fails
+
+    >>> ClassA.limited_infection(start_user_id=1, new_version=3, limit=5)
+    'too many users would be infected, new version not implemented for this graph'
+
+Lets try a limited infection that succeeds
+    >>> ClassA.limited_infection(start_user_id=1, new_version=3, limit=10)
+    >>> for u_id, user_obj in sorted(ClassA.users.items()):
+    ...     print "u_id %s: version %s" % (user_obj.id, user_obj.version)
+    u_id 1: version 3
+    u_id 2: version 3
+    u_id 3: version 3
+    u_id 4: version 3
+    u_id 5: version 3
+    u_id 6: version 3
+    u_id 7: version 3
+
+Now, lets add a user who is in the graph but not connected to anyone
+    >>> ClassA.add_user()
+    >>> ClassA.find_relations(8)
+    set([])
+
+So, if we infect the graph, user 8 won't be infected because we have no relations set up.
+
+    >>> ClassA.total_infection(start_user_id=2, new_version=2)
+    >>> len([user for user in ClassA.users if ClassA.users[user].version == 2])
+    7
+    >>> len([user for user in ClassA.users if ClassA.users[user].version != 2])
+    1
+
+Lastly, lets see what our graph looks like
+        >>> print ClassA.show_graph()
+        ... # doctest: +NORMALIZE_WHITESPACE
+        [
+            {
+                "user_id": 1,
+                "user_relations": [
+                    2,
+                    4,
+                    6
+                ],
+                "version": 2
+            },
+            {
+                "user_id": 2,
+                "user_relations": [
+                    1,
+                    3
+                ],
+                "version": 2
+            },
+            {
+                "user_id": 3,
+                "user_relations": [
+                    2
+                ],
+                "version": 2
+            },
+            {
+                "user_id": 4,
+                "user_relations": [
+                    1,
+                    5
+                ],
+                "version": 2
+            },
+            {
+                "user_id": 5,
+                "user_relations": [
+                    4,
+                    7
+                ],
+                "version": 2
+            },
+            {
+                "user_id": 6,
+                "user_relations": [
+                    1
+                ],
+                "version": 2
+            },
+            {
+                "user_id": 7,
+                "user_relations": [
+                    5
+                ],
+                "version": 2
+            },
+            {
+                "user_id": 8,
+                "user_relations": [],
+                "version": null
+            }
+        ]
